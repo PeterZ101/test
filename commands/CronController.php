@@ -15,19 +15,19 @@ class CronController extends Controller
 
 	public function actionIndex()
 	{
-		echo "Work\r\n";
+		echo "Work!\r\n";
 
-		$this->addShop();
-		echo "Add Shop\r\n";
+		$this->insertShop();
+		echo "Add Shop ... OK\r\n";
 		$this->addCoupons();
-		echo "Add Coupons\r\n";
+		echo "Add Coupons ... OK\r\n";
 		$this->deleteExpCoupons();
-		echo "delete exp Coupons\r\n";
+		echo "delete exp Coupons ... OK\r\n";
 
 		return ExitCode::OK;
 	}
 
-	public function addShop()
+	public function insertShop()
 	{
 		$dbShop = Shop::find()->orderBy('id desc')->limit(1)->one();
 		$name = '';
@@ -45,8 +45,8 @@ class CronController extends Controller
 		if (count($shop) == 3)
 		{
 			$dbShop = Shop::find()
-			             ->where(['name' => $shop[2]])
-			             ->limit(1)->one();
+			              ->where(['name' => $shop[2]])
+			              ->limit(1)->one();
 			if (is_null($dbShop))
 			{
 				$dbShop = new Shop();
@@ -108,7 +108,8 @@ class CronController extends Controller
 
 	public function getHtml($url = '')
 	{
-		return file_get_contents($url);
+		//return file_get_contents($url);
+		return $this->url_get_contents($url);
 	}
 
 	public function addCoupons()
@@ -131,8 +132,8 @@ class CronController extends Controller
 		$return = 0;
 
 		$dbShop = Shop::find()
-		            ->where(['id' => $shopId])
-		            ->limit(1)->one();
+		              ->where(['id' => $shopId])
+		              ->limit(1)->one();
 
 		if (!is_null($dbShop))
 		{
@@ -180,5 +181,61 @@ class CronController extends Controller
 	public function deleteExpCoupons()
 	{
 		return Coupon::deleteAll(['<', 'date_exp', date('Y-m-d')]);
+	}
+
+	public function url_get_contents($url, $useragent = 'cURL', $headers = false, $follow_redirects = true, $debug = false)
+	{
+
+		// initialise the CURL library
+		$ch = curl_init();
+
+		// specify the URL to be retrieved
+		curl_setopt($ch, CURLOPT_URL, $url);
+
+		// we want to get the contents of the URL and store it in a variable
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+		// specify the useragent: this is a required courtesy to site owners
+		curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+
+		// ignore SSL errors
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+		// return headers as requested
+		if ($headers == true)
+		{
+			curl_setopt($ch, CURLOPT_HEADER, 1);
+		}
+
+		// only return headers
+		if ($headers == 'headers only')
+		{
+			curl_setopt($ch, CURLOPT_NOBODY, 1);
+		}
+
+		// follow redirects - note this is disabled by default in most PHP installs from 4.4.4 up
+		if ($follow_redirects == true)
+		{
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		}
+
+		// if debugging, return an array with CURL debug info and the URL contents
+		if ($debug == true)
+		{
+			$result['contents'] = curl_exec($ch);
+			$result['info'] = curl_getinfo($ch);
+		}
+
+		// otherwise just return the contents as a variable
+		else
+		{
+			$result = curl_exec($ch);
+		}
+
+		// free resources
+		curl_close($ch);
+
+		// send back the data
+		return $result;
 	}
 }
