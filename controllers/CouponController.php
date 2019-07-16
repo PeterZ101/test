@@ -23,7 +23,7 @@ class CouponController extends Controller
 
 		$pagination = new Pagination(
 			[
-				'defaultPageSize' => 20,
+				'defaultPageSize' => 10,
 				'totalCount' => $query->count(),
 			]
 		);
